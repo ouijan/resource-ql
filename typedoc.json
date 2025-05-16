@@ -10,7 +10,6 @@
   "excludeExternals": true,
   "exclude": ["./types/**/*"],
   "placeInternalsInOwningModule": true,
-  "collapseInternalModule": true,
   "navigation": {
     "includeGroups": true,
     "compactFolders": false
