@@ -7,8 +7,7 @@
     "clean": "rm -rf dist coverage docs node_modules",
     "build": "rm -rf dist && tsc",
     "test": "npx jest && jest-coverage-badges",
-    "docs": "npx typedoc",
-    "prepare": "pnpm test && pnpm run docs"
+    "docs": "npx typedoc"
   },
   "keywords": [],
   "author": "",
