@@ -1,5 +1,5 @@
-name: Tests
-run-name: ${{ github.ref }} tests
+name: Build
+run-name: ${{ github.ref }} build
 on: [push]
 jobs:
   build:
@@ -13,18 +13,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - name: Cache pnpm
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
       - name: Install Dependencies
         uses: pnpm/action-setup@v4
-        with:
-          version: 8
-          run_install: |
-            - args: [--frozen-lockfile]
       - name: Test
         run: pnpm run build
