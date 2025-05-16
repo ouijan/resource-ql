@@ -1,6 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "outDir": "dist",
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "baseUrl": ".",
@@ -18,7 +19,7 @@
     "paths": {},
     "pretty": true,
     "resolveJsonModule": true,
-    "rootDir": ".",
+    "rootDir": "src",
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "sourceMap": true,
@@ -27,5 +28,15 @@
     "target": "es2015",
     "typeRoots": ["node_modules/@types", "./types"]
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "dist",
+    "build",
+    "out",
+    "coverage",
+    "lib",
+    "docs",
+    "jest.config.ts"
+  ]
 }

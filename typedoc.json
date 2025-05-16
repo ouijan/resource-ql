@@ -6,6 +6,8 @@
     "typedoc-plugin-coverage"
   ],
   "themeColor": "#81a1c1",
+  "favicon": "./media/favicon.ico",
+  "hideGenerator": true,
   "excludeExternals": true,
   "exclude": ["./types/**/*"],
   "placeInternalsInOwningModule": true,
