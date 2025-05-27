@@ -1,4 +1,5 @@
-import { AdaptorTypes, IAdaptor } from '../adaptor';
+import { IAdaptor } from '../adaptor/adaptor';
+import { AdaptorTypes } from '../adaptor/adaptor-types';
 
 export type TestDocRef<T> = { id: string; data: T };
 export type TestColRef<_T> = { id: string };

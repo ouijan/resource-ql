@@ -1,5 +1,6 @@
 import { Observable } from 'rxjs';
-import { AdaptorTypes, IAdaptor } from '../adaptor';
+import { IAdaptor } from '../adaptor/adaptor';
+import { AdaptorTypes } from '../adaptor/adaptor-types';
 import {
   all$,
   CollectionReference,

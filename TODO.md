@@ -2,7 +2,7 @@
 
 ## Document
 
-- [ ] Organise typedoc using @group (instead of @category)
+- [ ] Update README.md
 - [ ] Pattern Enabled by this library
 - [ ] How it enables testing
 

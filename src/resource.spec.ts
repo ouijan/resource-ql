@@ -1,6 +1,6 @@
-import { Doc } from './nodes/doc';
-import { DocResolver } from './nodes/doc-resolver';
-import { Resource } from './resource';
+import { Doc } from './accessors/doc';
+import { DocResolver } from './resolvers/doc-resolver';
+import { NewResource } from './resource';
 import {
   TestAdaptor,
   TestAdaptorTypes,
@@ -12,7 +12,7 @@ interface IUser {
   name: string;
 }
 
-describe('Resource', () => {
+describe('NewResource', () => {
   type T = string;
   let adaptor: TestAdaptor;
   let docRef: TestDocRef<T>;
@@ -23,22 +23,14 @@ describe('Resource', () => {
   });
 
   it('should create a Resource instance', () => {
-    const resource = new Resource<IUser, TestAdaptorTypes>(adaptor);
-    expect(resource).toBeInstanceOf(Resource);
+    const resource = NewResource<TestAdaptorTypes, IUser>(adaptor);
     expect(resource).toBeInstanceOf(DocResolver);
   });
 
   it('should pass the adaptor to the parent DocResolver', () => {
-    const resource = new Resource<IUser, TestAdaptorTypes>(adaptor);
+    const resource = NewResource<TestAdaptorTypes, IUser>(adaptor);
     const result = resource.parent().resolve(docRef);
     expect(result).toBeInstanceOf(Doc);
     expect(adaptor.docParentRef).toHaveBeenCalledWith(docRef);
-  });
-
-  it('should allow chaining (returns this)', () => {
-    const resource = new Resource<IUser, TestAdaptorTypes>(adaptor);
-    // Assuming DocResolver has a dummy method for chaining, e.g., .col()
-    // Here we just check that the instance is returned for chaining
-    expect(resource).toBeInstanceOf(Resource);
   });
 });

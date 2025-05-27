@@ -1,4 +1,5 @@
-import { Resource } from '../resource';
+import { IDocResolver } from 'src/interfaces/doc-resolver';
+import { NewResource } from '../resource';
 import { FirestoreAdaptor, FirestoreAdaptorTypes } from './firestore-adaptor';
 import { DocumentReference, QueryConstraint } from './firestore-interfaces';
 
@@ -13,8 +14,8 @@ interface Gamma {
 }
 
 class Example {
-  static from<T>(): Resource<T, FirestoreAdaptorTypes> {
-    return new Resource<T, FirestoreAdaptorTypes>(new FirestoreAdaptor());
+  static from<T>(): IDocResolver<FirestoreAdaptorTypes, T, T> {
+    return NewResource<FirestoreAdaptorTypes, T>(new FirestoreAdaptor());
   }
 
   static beta = this.from<Beta>();
@@ -27,8 +28,8 @@ export async function test(): Promise<void> {
   const constraint = {} as QueryConstraint;
 
   const betaRef = {} as DocumentReference<Beta>;
-  const beta = await Example.beta.call(betaRef).get();
-  const alpha = await Example.alpha.call(betaRef).get();
+  const beta = await Example.beta.resolve(betaRef).get();
+  const alpha = await Example.alpha.resolve(betaRef).get();
   const gamma = await Example.someGammas.resolve(betaRef).get();
 
   Example.gammas.constraints(constraint);

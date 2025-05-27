@@ -8,8 +8,8 @@
     "build": "rm -rf dist && tsc",
     "test": "pnpm jest",
     "test:coverage": "pnpm test -- --coverage && coverage-badges",
-    "test:badges": "pnpm run test:coverage && coverage-badges",
-    "docs": "npx typedoc"
+    "docs": "npx typedoc",
+    "precommit": "pnpm run test:coverage && pnpm run docs"
   },
   "keywords": [],
   "author": "",
