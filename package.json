@@ -6,8 +6,9 @@
   "scripts": {
     "clean": "rm -rf dist coverage docs node_modules",
     "build": "rm -rf dist && tsc",
-    "test": "npx jest",
-    "test:coverage": "jest --coverage && jest-coverage-badges",
+    "test": "pnpm jest",
+    "test:coverage": "pnpm test -- --coverage && coverage-badges",
+    "test:badges": "pnpm run test:coverage && coverage-badges",
     "docs": "npx typedoc"
   },
   "keywords": [],
@@ -30,6 +31,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "coverage-badges-cli": "^2.1.0",
     "lodash": "^4.17.21",
     "rxjs": "^7.8.2"
   }
