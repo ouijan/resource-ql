@@ -8,22 +8,11 @@
 
 ## Implement
 
-- [x] Adaptor pattern for backends (remove doc references to firestore)
-- [x] Pass through `transactions`
 - [ ] `.queryWith`
 - [ ] `constraintsWith`
 - [ ] Allow registration of custom nodes (Doc, Query etc). Incase people wan't
       to add additional functions. Convert the Adaptor interface into an
       abstract class that provides the constructors for each type
-
-## Test
-
-- [ ] ColResolver
-- [ ] Col
-- [ ] DocResolver
-- [ ] Doc
-- [ ] QueryResolver
-- [ ] Query
 
 # Stretch Goals
 

@@ -1,6 +1,6 @@
 import { catchError, Observable, of } from 'rxjs';
 import { AdaptorTypes, DocRef, IAdaptor, Transaction } from '../adaptor';
-import { ColResolver } from './col-resolver';
+import { CallableColResolver, ColResolver } from './col-resolver';
 
 /**
  * Represents a Firestore document reference with methods to fetch document
@@ -144,9 +144,9 @@ export class Doc<A extends AdaptorTypes, T> {
    * const posts = await userDoc.col('posts').get();
    * ```
    */
-  col<C>(colPath: string): ColResolver<A, T, C> {
+  col<C>(colPath: string): CallableColResolver<A, T, C> {
     const colRef = this._adaptor.colRef<C, T>(this.ref, colPath);
-    return new ColResolver(
+    return ColResolver.create(
       this._adaptor,
       () => colRef,
       () => this._adaptor.castToQuery(colRef)

@@ -1,12 +1,19 @@
 import {
   AdaptorTypes,
-  IAdaptor,
   ColRef,
   Constraint,
   DocRef,
+  IAdaptor,
   QueryRef,
 } from '../adaptor';
 import { Col } from './col';
+import { Callable, ICallable, MakeCallable } from '../callable';
+
+export type CallableColResolver<A extends AdaptorTypes, S, T> = Callable<
+  ColResolver<A, S, T>,
+  DocRef<A, S>,
+  Col<A, T>
+>;
 
 /**
  * Resolves a collection reference based on a source document reference.
@@ -26,8 +33,20 @@ import { Col } from './col';
  * @category Resolvers
  * @hideconstructor @internal
  */
-export class ColResolver<A extends AdaptorTypes, S, T> {
-  constructor(
+export class ColResolver<A extends AdaptorTypes, S, T>
+  implements ICallable<DocRef<A, S>, Col<A, T>>
+{
+  static create<A extends AdaptorTypes, S, T>(
+    adaptor: IAdaptor<A>,
+    resolveRef: (source: DocRef<A, S>) => ColRef<A, T>,
+    resolveQuery: (source: DocRef<A, S>) => QueryRef<A, T>
+  ): CallableColResolver<A, S, T> {
+    return MakeCallable(
+      new ColResolver<A, S, T>(adaptor, resolveRef, resolveQuery)
+    );
+  }
+
+  private constructor(
     private _adaptor: IAdaptor<A>,
     private _resolveRef: (source: DocRef<A, S>) => ColRef<A, T>,
     private _resolveQuery: (source: DocRef<A, S>) => QueryRef<A, T>
@@ -38,7 +57,7 @@ export class ColResolver<A extends AdaptorTypes, S, T> {
    * returns a new `Col` instance. However, the preferred method to do this is
    * by invoking the ColResolver directly.
    *
-   * @see call
+   * @see resolve
    *
    * @param source - The document reference from which to resolve the collection.
    * @returns A new `Col` instance associated with the resolved collection reference.
@@ -51,7 +70,8 @@ export class ColResolver<A extends AdaptorTypes, S, T> {
    */
   resolve(source: DocRef<A, S>): Col<A, T> {
     const ref = this._resolveRef(source);
-    return new Col(this._adaptor, ref);
+    const queryRef = this._resolveQuery(source);
+    return new Col(this._adaptor, ref, queryRef);
   }
 
   /**
@@ -85,8 +105,8 @@ export class ColResolver<A extends AdaptorTypes, S, T> {
    */
   query(
     getQuery: (query: QueryRef<A, T>) => QueryRef<A, T>
-  ): ColResolver<A, S, T> {
-    return new ColResolver(this._adaptor, this._resolveRef, (sourceRef) => {
+  ): CallableColResolver<A, S, T> {
+    return ColResolver.create(this._adaptor, this._resolveRef, (sourceRef) => {
       const queryRef = this._resolveQuery(sourceRef);
       return getQuery(queryRef);
     });
@@ -107,8 +127,8 @@ export class ColResolver<A extends AdaptorTypes, S, T> {
    *   orderBy('amount', 'desc') // apply additional constraints
    * );
    */
-  constraints(...constraints: Constraint<A>[]): ColResolver<A, S, T> {
-    return new ColResolver(this._adaptor, this._resolveRef, (sourceRef) => {
+  constraints(...constraints: Constraint<A>[]): CallableColResolver<A, S, T> {
+    return ColResolver.create(this._adaptor, this._resolveRef, (sourceRef) => {
       const queryRef = this._resolveQuery(sourceRef);
       return this._adaptor.query(queryRef, constraints);
     });

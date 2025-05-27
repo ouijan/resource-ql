@@ -3,7 +3,7 @@ import type { Config } from 'jest';
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  collectCoverage: true,
+  collectCoverage: false,
   // reporters: [],
   coverageReporters: ['json', 'json-summary', 'text', 'lcov'],
   collectCoverageFrom: [

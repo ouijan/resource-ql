@@ -1,3 +1,4 @@
+import { Callable, ICallable, MakeCallable } from '../callable';
 import {
   AdaptorTypes,
   IAdaptor,
@@ -6,6 +7,12 @@ import {
   QueryRef,
 } from '../adaptor';
 import { Query } from './query';
+
+type CallableQueryResolver<A extends AdaptorTypes, S, T> = Callable<
+  QueryResolver<A, S, T>,
+  DocRef<A, S>,
+  Query<A, T>
+>;
 
 /**
  * Resolves a query based on a source document reference.
@@ -25,8 +32,17 @@ import { Query } from './query';
  * @category Resolvers
  * @hideconstructor @internal
  */
-export class QueryResolver<A extends AdaptorTypes, S, T> {
-  constructor(
+export class QueryResolver<A extends AdaptorTypes, S, T>
+  implements ICallable<DocRef<A, S>, Query<A, T>>
+{
+  static create<A extends AdaptorTypes, S, T>(
+    adaptor: IAdaptor<A>,
+    resolveQuery: (source: DocRef<A, S>) => QueryRef<A, T>
+  ): CallableQueryResolver<A, S, T> {
+    return MakeCallable(new QueryResolver(adaptor, resolveQuery));
+  }
+
+  private constructor(
     private _adaptor: IAdaptor<A>,
     public _resolveQuery: (source: DocRef<A, S>) => QueryRef<A, T>
   ) {}
@@ -79,8 +95,8 @@ export class QueryResolver<A extends AdaptorTypes, S, T> {
    * const results = await filteredResolver(docRef).get();
    * ```
    */
-  constraints(...constraints: Constraint<A>[]): QueryResolver<A, S, T> {
-    return new QueryResolver(
+  constraints(...constraints: Constraint<A>[]): CallableQueryResolver<A, S, T> {
+    return QueryResolver.create(
       this._adaptor,
       (sourceRef: DocRef<A, S>): QueryRef<A, T> => {
         const ref = this._resolveQuery(sourceRef);
@@ -106,8 +122,8 @@ export class QueryResolver<A extends AdaptorTypes, S, T> {
    */
   query(
     getQuery: (query: QueryRef<A, T>) => QueryRef<A, T>
-  ): QueryResolver<A, S, T> {
-    return new QueryResolver(this._adaptor, (sourceRef) => {
+  ): CallableQueryResolver<A, S, T> {
+    return QueryResolver.create(this._adaptor, (sourceRef) => {
       const queryRef = this._resolveQuery(sourceRef);
       return getQuery(queryRef);
     });

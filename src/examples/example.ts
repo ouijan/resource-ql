@@ -29,7 +29,7 @@ export async function test(): Promise<void> {
   const betaRef = {} as DocumentReference<Beta>;
   const beta = await Example.beta.call(betaRef).get();
   const alpha = await Example.alpha.call(betaRef).get();
-  const gamma = await Example.someGammas.call(betaRef).get();
+  const gamma = await Example.someGammas.resolve(betaRef).get();
 
   Example.gammas.constraints(constraint);
 

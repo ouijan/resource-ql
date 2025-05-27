@@ -1,7 +1,14 @@
-import { AdaptorTypes, IAdaptor, DocRef, QueryRef } from '../adaptor';
-import { ColResolver } from './col-resolver';
+import { Callable, ICallable, MakeCallable } from '../callable';
+import { AdaptorTypes, DocRef, IAdaptor, QueryRef } from '../adaptor';
+import { CallableColResolver, ColResolver } from './col-resolver';
 import { Doc } from './doc';
 import { QueryResolver } from './query-resolver';
+
+export type CallableDocResolver<A extends AdaptorTypes, S, T> = Callable<
+  DocResolver<A, S, T>,
+  DocRef<A, S>,
+  Doc<A, T>
+>;
 
 /**
  * Resolves Firestore document references and provides methods to navigate
@@ -22,7 +29,16 @@ import { QueryResolver } from './query-resolver';
  * @category Resolvers
  * @hideconstructor @internal
  */
-export class DocResolver<A extends AdaptorTypes, S, T> {
+export class DocResolver<A extends AdaptorTypes, S, T>
+  implements ICallable<DocRef<A, S>, Doc<A, T>>
+{
+  static create<A extends AdaptorTypes, S, T>(
+    adaptor: IAdaptor<A>,
+    resolveRef: (source: DocRef<A, S>) => DocRef<A, T>
+  ): CallableDocResolver<A, S, T> {
+    return MakeCallable(new DocResolver(adaptor, resolveRef));
+  }
+
   constructor(
     private _adaptor: IAdaptor<A>,
     public _resolveRef: (source: DocRef<A, S>) => DocRef<A, T>
@@ -42,8 +58,8 @@ export class DocResolver<A extends AdaptorTypes, S, T> {
    * const parentDoc = await parentResolver(docRef).get();
    * ```
    */
-  parent<P>(): DocResolver<A, S, P> {
-    return new DocResolver(this._adaptor, (sourceRef) => {
+  parent<P>(): CallableDocResolver<A, S, P> {
+    return DocResolver.create(this._adaptor, (sourceRef) => {
       const targetRef = this._resolveRef(sourceRef);
       return this._adaptor.docParentRef<P, T>(targetRef);
     });
@@ -98,12 +114,12 @@ export class DocResolver<A extends AdaptorTypes, S, T> {
    * const posts = await colResolver(docRef).get();
    * ```
    */
-  col<C>(colPath: string): ColResolver<A, S, C> {
+  col<C>(colPath: string): CallableColResolver<A, S, C> {
     const colResolver = (source: DocRef<A, S>) =>
       this._adaptor.colRef<C, T>(this._resolveRef(source), colPath);
     const queryResolver = (source: DocRef<A, S>) =>
       this._adaptor.castToQuery(colResolver(source));
-    return new ColResolver(this._adaptor, colResolver, queryResolver);
+    return ColResolver.create(this._adaptor, colResolver, queryResolver);
   }
 
   /**
@@ -129,7 +145,7 @@ export class DocResolver<A extends AdaptorTypes, S, T> {
   query<C>(
     getQuery: (source: DocRef<A, T>) => QueryRef<A, C>
   ): QueryResolver<A, S, C> {
-    return new QueryResolver(this._adaptor, (sourceRef) => {
+    return QueryResolver.create(this._adaptor, (sourceRef) => {
       const targetRef = this._resolveRef(sourceRef);
       return getQuery(targetRef);
     });

@@ -1,1 +1,3 @@
-// export class QueryWithResolver<T, A extends AdaptorTypes> {
+// import { AdaptorTypes } from '../adaptor';
+
+// export class QueryWithResolver<T, A extends AdaptorTypes> {}

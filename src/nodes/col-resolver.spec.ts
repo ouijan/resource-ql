@@ -1,9 +1,9 @@
 import {
   TestAdaptor,
   TestColRef,
+  TestConstraint,
   TestDocRef,
   TestQueryRef,
-  TestConstraint,
 } from '../testing/testing-adaptor';
 import { Col } from './col';
 import { ColResolver } from './col-resolver';
@@ -22,9 +22,20 @@ describe('ColResolver', () => {
     queryRef = { col: colRef, constraints: [] };
   });
 
+  describe('create()', () => {
+    it('should create a ColResolver with the given adaptor and col resolver function', () => {
+      const resolver = ColResolver.create(
+        adaptor,
+        () => colRef,
+        () => queryRef
+      );
+      expect(resolver).toBeInstanceOf(ColResolver);
+    });
+  });
+
   describe('resolve', () => {
     it('constructs and resolves a Col', () => {
-      const resolver = new ColResolver(
+      const resolver = ColResolver.create(
         adaptor,
         () => colRef,
         () => queryRef
@@ -36,46 +47,81 @@ describe('ColResolver', () => {
 
   describe('call', () => {
     it('is an alias for resolve', () => {
-      const resolver = new ColResolver(
+      const resolver = ColResolver.create(
         adaptor,
         () => colRef,
         () => queryRef
       );
-      expect(resolver.call).toBe(resolver.resolve);
-      const col = resolver.call(docRef);
+      expect(resolver.resolve).toBe(resolver.resolve);
+      const col = resolver.resolve(docRef);
+      expect(col).toBeInstanceOf(Col);
+    });
+
+    it('allows resolver to be called directly', () => {
+      const resolver = ColResolver.create(
+        adaptor,
+        () => colRef,
+        () => queryRef
+      );
+      const col = resolver(docRef);
       expect(col).toBeInstanceOf(Col);
     });
   });
 
   describe('query', () => {
-    it('returns a new ColResolver with transformed query', () => {
-      const resolver = new ColResolver(
+    it('should return a new ColResolver with a transformed query', () => {
+      const transformedQueryRef = {
+        col: colRef,
+        constraints: [{ type: 'where', field: 'x', op: '>', value: 5 }],
+      } as any;
+      const resolver = ColResolver.create(
         adaptor,
         () => colRef,
         () => queryRef
       );
-      const getQuery = jest.fn((q) => ({ ...q, extra: true }));
+      const getQuery = jest.fn().mockReturnValue(transformedQueryRef);
       const newResolver = resolver.query(getQuery);
-      expect(newResolver).not.toBe(resolver);
-      const result = (newResolver as any)._resolveQuery(docRef);
-      expect(result.extra).toBe(true);
+      expect(newResolver).toBeInstanceOf(ColResolver);
+
+      const result = newResolver.resolve(docRef);
+      expect(getQuery).toHaveBeenCalledWith(queryRef);
+      expect(result).toBeInstanceOf(Col);
+      expect(result.ref).toBe(colRef);
+      expect(result.queryRef).toEqual(transformedQueryRef);
     });
   });
 
   describe('constraints', () => {
-    it('returns a new ColResolver with applied constraints', () => {
-      const resolver = new ColResolver(
+    it('should return a new ColResolver with constraints applied', () => {
+      const constraint: TestConstraint = {
+        constraintId: 'foo',
+      };
+      const resolver = ColResolver.create(
         adaptor,
         () => colRef,
         () => queryRef
       );
-      const constraint: TestConstraint = { constraintId: 'c1' };
-      const newResolver = resolver.constraints(constraint);
-      expect(newResolver).not.toBe(resolver);
+      const constrainedResolver = resolver.constraints(constraint);
+      expect(constrainedResolver).toBeInstanceOf(ColResolver);
 
-      const result = (newResolver as any)._resolveQuery(docRef);
-      console.log(result);
-      // expect(result.constraints).toContain(constraint);
+      // Should apply the constraint when resolving
+      const spy = jest.spyOn(adaptor, 'query');
+      constrainedResolver.resolve(docRef);
+      expect(spy).toHaveBeenCalledWith(queryRef, [constraint]);
+    });
+
+    it('should allow chaining multiple constraints', () => {
+      const c1: TestConstraint = { constraintId: 'a' };
+      const c2: TestConstraint = { constraintId: 'b' };
+      const resolver = ColResolver.create(
+        adaptor,
+        () => colRef,
+        () => queryRef
+      );
+      const constrainedResolver = resolver.constraints(c1, c2);
+      const spy = jest.spyOn(adaptor, 'query');
+      constrainedResolver.resolve(docRef);
+      expect(spy).toHaveBeenCalledWith(queryRef, [c1, c2]);
     });
   });
 });
