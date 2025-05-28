@@ -4,9 +4,9 @@
 [![Coverage](https://ouijan.github.io/resource-ql/coverage/badges.svg)](https://ouijan.github.io/resource-ql/coverage/lcov-report)
 [![Documentation](https://ouijan.github.io/resource-ql/docs/coverage.svg)](https://ouijan.github.io/resource-ql/docs)
 
-<div style="text-align: center;">
+<p align="center">
   <img src="./media/logo.svg" alt="Resource-QL Logo" width="200"/>
-</div>
+</p>
 
 # ResourceQL
 
