@@ -5,11 +5,10 @@
 - [ ] Update README.md
 - [ ] Pattern Enabled by this library
 - [ ] How it enables testing
+- [ ] Move exmaples outside the src folder
 
 ## Implement
 
-- [ ] `.queryWith`
-- [ ] `constraintsWith`
 - [ ] Allow registration of custom nodes (Doc, Query etc). Incase people wan't
       to add additional functions. Convert the Adaptor interface into an
       abstract class that provides the constructors for each type

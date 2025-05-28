@@ -50,12 +50,11 @@ export interface IDocResolver<A extends AdaptorTypes, S, T> {
    * @example
    * ```typescript
    * const data = await resolver(docRef).get() // Called directly (preferred)
-   * const data = await resolver.call(docRef).get() // Called as a function
+   * const data = await resolver.resolve(docRef).get() // Called as a function
    * ```
    */
   resolve(source: DocRef<A, S>): IDoc<A, T>;
   (docRef: DocRef<A, S>): IDoc<A, T>;
-  //   call: (source: DocRef<A, S>) => IDoc<A, T>;
 
   /**
    * Resolves a collection reference from the given document reference and

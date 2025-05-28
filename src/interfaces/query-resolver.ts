@@ -5,6 +5,7 @@ import {
   QueryRef,
 } from '../adaptor/adaptor-types';
 import { IQuery } from './query';
+import { IQueryWithResolver } from './query-with-resolver';
 
 /**
  * Resolves a query based on a source document reference.
@@ -36,28 +37,11 @@ export interface IQueryResolver<A extends AdaptorTypes, S, T> {
    * @example
    * ```typescript
    * const data = await resolver(docRef).get() // Called directly (preferred)
-   * const data = await resolver.call(docRef).get() // Called as a function
+   * const data = await resolver.resolve(docRef).get() // Called as a function
    * ```
    */
   resolve(source: DocRef<A, S>): IQuery<A, T>;
   (docRef: DocRef<A, S>): IQuery<A, T>;
-  // call(source: DocRef<A, S>): IQuery<A, T>;
-
-  /**
-   * Applies one or more query constraints to the current query resolver and
-   * returns a new `IQueryResolver`. How constraints are defined and applied
-   * is determined by the adaptor.
-   *
-   * @param constraints - One or more `Constraint<A>` objects to apply to the query.
-   * @returns A new `IQueryResolver<A, S, T>` with the specified constraints applied.
-   *
-   * @example
-   * ```typescript
-   * const filteredResolver = resolver.constraints(where('field', '==', value), orderBy('field'));
-   * const results = await filteredResolver(docRef).get();
-   * ```
-   */
-  constraints(...constraints: Constraint<A>[]): IQueryResolver<A, S, T>;
 
   /**
    * Applies a query transformation to the current query. How the query is
@@ -77,4 +61,55 @@ export interface IQueryResolver<A extends AdaptorTypes, S, T> {
   query(
     getQuery: (query: QueryRef<A, T>) => QueryRef<A, T>
   ): IQueryResolver<A, S, T>;
+
+  /**
+   * Applies one or more query constraints to the current query resolver and
+   * returns a new `IQueryResolver`. How constraints are defined and applied
+   * is determined by the adaptor.
+   *
+   * @param constraints - One or more `Constraint<A>` objects to apply to the query.
+   * @returns A new `IQueryResolver<A, S, T>` with the specified constraints applied.
+   *
+   * @example
+   * ```typescript
+   * const filteredResolver = resolver.constraints(where('field', '==', value), orderBy('field'));
+   * const results = await filteredResolver(docRef).get();
+   * ```
+   */
+  constraints(...constraints: Constraint<A>[]): IQueryResolver<A, S, T>;
+
+  /**
+   * Creates a new `IQueryWithResolver` that allows
+   * resolving a query with additional arguments.
+   *
+   * @param getQuery - A function that receives the current query reference
+   * and an argument, returning a new query reference.
+   * @returns A new `IQueryWithResolver` instance configured with the transformed query.
+   * @example
+   * ```typescript
+   * const extendedResolver = resolver.queryWith(
+   *   (q, arg) => q.where('amount', '>', arg) // Extend the query with an argument
+   * );
+   * ```
+   */
+  queryWith<Arg>(
+    getQuery: (q: QueryRef<A, T>, arg: Arg) => QueryRef<A, T>
+  ): IQueryWithResolver<A, S, T, Arg>;
+
+  /**
+   * Creates a new `IQueryWithResolver` that allows
+   * resolving a query with additional constraints based on an argument.
+   *
+   * @param getConstraints - A function that receives an argument and returns an array of constraints.
+   * @returns A new `IQueryWithResolver` instance configured with the transformed query.
+   * @example
+   * ```typescript
+   * const extendedResolver = resolver.constraintsWith(
+   *   (arg) => [where('amount', '>', arg)] // Apply constraints based on an argument
+   * );
+   * ```
+   */
+  constraintsWith<Arg>(
+    getConstraints: (arg: Arg) => Constraint<A>[]
+  ): IQueryWithResolver<A, S, T, Arg>;
 }

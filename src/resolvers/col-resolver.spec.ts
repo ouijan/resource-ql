@@ -7,6 +7,7 @@ import {
 } from '../testing/testing-adaptor';
 import { Col } from '../accessors/col';
 import { ColResolver } from './col-resolver';
+import { Query } from '../accessors/query';
 
 describe('ColResolver', () => {
   type T = string;
@@ -122,6 +123,81 @@ describe('ColResolver', () => {
       const spy = jest.spyOn(adaptor, 'query');
       constrainedResolver.resolve(docRef);
       expect(spy).toHaveBeenCalledWith(queryRef, [c1, c2]);
+    });
+  });
+
+  describe('queryWith', () => {
+    it('should return an IQueryWithResolver that applies the query transformation with an argument', () => {
+      const transformedQueryRef = {
+        col: colRef,
+        constraints: [{ type: 'where', field: 'amount', op: '>', value: 42 }],
+      } as any;
+      const resolver = ColResolver.create(
+        adaptor,
+        () => colRef,
+        () => queryRef
+      );
+      const getQuery = jest.fn().mockReturnValue(transformedQueryRef);
+      const queryWithResolver = resolver.queryWith<number>(getQuery);
+
+      expect(queryWithResolver).toBeDefined();
+      expect(typeof queryWithResolver.resolve).toBe('function');
+
+      const query = queryWithResolver.resolve(docRef, 42);
+      expect(getQuery).toHaveBeenCalledWith(queryRef, 42);
+      expect(query).toBeInstanceOf(Query);
+      expect(query.ref).toEqual(transformedQueryRef);
+    });
+  });
+
+  describe('constraintsWith', () => {
+    it('should return an IQueryWithResolver that applies constraints based on an argument', () => {
+      const constraintFactory = jest
+        .fn()
+        .mockImplementation((arg: string) => [
+          { constraintId: `where-amount-${arg}` },
+        ]);
+      const resolver = ColResolver.create(
+        adaptor,
+        () => colRef,
+        () => queryRef
+      );
+      const queryWithResolver =
+        resolver.constraintsWith<string>(constraintFactory);
+
+      expect(queryWithResolver).toBeDefined();
+      expect(typeof queryWithResolver.resolve).toBe('function');
+
+      const spy = jest.spyOn(adaptor, 'query');
+      const query = queryWithResolver.resolve(docRef, '100');
+      expect(constraintFactory).toHaveBeenCalledWith('100');
+      expect(spy).toHaveBeenCalledWith(queryRef, [
+        { constraintId: 'where-amount-100' },
+      ]);
+      expect(query).toBeInstanceOf(Query);
+    });
+
+    it('should allow constraintsWith to work with different argument types', () => {
+      const constraintFactory = jest
+        .fn()
+        .mockImplementation((arg: number) => [
+          { constraintId: `where-amount-${arg}` },
+        ]);
+      const resolver = ColResolver.create(
+        adaptor,
+        () => colRef,
+        () => queryRef
+      );
+      const queryWithResolver =
+        resolver.constraintsWith<number>(constraintFactory);
+
+      const spy = jest.spyOn(adaptor, 'query');
+      const query = queryWithResolver.resolve(docRef, 123);
+      expect(constraintFactory).toHaveBeenCalledWith(123);
+      expect(spy).toHaveBeenCalledWith(queryRef, [
+        { constraintId: 'where-amount-123' },
+      ]);
+      expect(query).toBeInstanceOf(Query);
     });
   });
 });

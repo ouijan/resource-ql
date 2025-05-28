@@ -9,6 +9,8 @@ import {
   QueryRef,
   Constraint,
 } from '../adaptor/adaptor-types';
+import { IQueryWithResolver } from 'src/interfaces/query-with-resolver';
+import { QueryWithResolver } from './query-with-resolver';
 
 export class ColResolver<A extends AdaptorTypes, S, T>
   implements PropertiesOf<IColResolver<A, S, T>>
@@ -45,6 +47,25 @@ export class ColResolver<A extends AdaptorTypes, S, T>
 
   constraints(...constraints: Constraint<A>[]): IColResolver<A, S, T> {
     return ColResolver.create(this._adaptor, this._resolveRef, (sourceRef) => {
+      const queryRef = this._resolveQuery(sourceRef);
+      return this._adaptor.query(queryRef, constraints);
+    });
+  }
+
+  queryWith<Arg>(
+    getQuery: (q: QueryRef<A, T>, arg: Arg) => QueryRef<A, T>
+  ): IQueryWithResolver<A, S, T, Arg> {
+    return QueryWithResolver.create(this._adaptor, (sourceRef, arg: Arg) => {
+      const queryRef = this._resolveQuery(sourceRef);
+      return getQuery(queryRef, arg);
+    });
+  }
+
+  constraintsWith<Arg>(
+    getConstraints: (arg: Arg) => Constraint<A>[]
+  ): IQueryWithResolver<A, S, T, Arg> {
+    return QueryWithResolver.create(this._adaptor, (sourceRef, arg: Arg) => {
+      const constraints = getConstraints(arg);
       const queryRef = this._resolveQuery(sourceRef);
       return this._adaptor.query(queryRef, constraints);
     });

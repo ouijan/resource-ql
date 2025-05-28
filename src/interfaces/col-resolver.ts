@@ -5,6 +5,7 @@ import {
   QueryRef,
 } from '../adaptor/adaptor-types';
 import { ICol } from './col';
+import { IQueryWithResolver } from './query-with-resolver';
 
 /**
  * Resolves a collection reference based on a source document reference.
@@ -41,7 +42,6 @@ export interface IColResolver<A extends AdaptorTypes, S, T> {
    */
   resolve(source: DocRef<A, S>): ICol<A, T>;
   (source: DocRef<A, S>): ICol<A, T>;
-  //   call: (source: DocRef<A, S>) => ICol<A, T>;
 
   /**
    * Applies a query transformation to the current collection or query reference.
@@ -78,4 +78,39 @@ export interface IColResolver<A extends AdaptorTypes, S, T> {
    * );
    */
   constraints(...constraints: Constraint<A>[]): IColResolver<A, S, T>;
+
+  /**
+   * Creates a new `IQueryWithResolver` that allows
+   * resolving a query with additional arguments.
+   *
+   * @param getQuery - A function that receives the current query reference
+   * and an argument, returning a new query reference.
+   * @returns A new `IQueryWithResolver` instance configured with the transformed query.
+   * @example
+   * ```typescript
+   * const extendedResolver = resolver.queryWith(
+   *   (q, arg) => q.where('amount', '>', arg) // Extend the query with an argument
+   * );
+   * ```
+   */
+  queryWith<Arg>(
+    getQuery: (q: QueryRef<A, T>, arg: Arg) => QueryRef<A, T>
+  ): IQueryWithResolver<A, S, T, Arg>;
+
+  /**
+   * Creates a new `IQueryWithResolver` that allows
+   * resolving a query with additional constraints based on an argument.
+   *
+   * @param getConstraints - A function that receives an argument and returns an array of constraints.
+   * @returns A new `IQueryWithResolver` instance configured with the transformed query.
+   * @example
+   * ```typescript
+   * const extendedResolver = resolver.constraintsWith(
+   *   (arg) => [where('amount', '>', arg)] // Apply constraints based on an argument
+   * );
+   * ```
+   */
+  constraintsWith<Arg>(
+    getConstraints: (arg: Arg) => Constraint<A>[]
+  ): IQueryWithResolver<A, S, T, Arg>;
 }

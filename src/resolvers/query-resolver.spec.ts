@@ -81,4 +81,54 @@ describe('QueryResolver', () => {
       expect(result.ref).toBe(transformedQueryRef);
     });
   });
+
+  describe('queryWith', () => {
+    it('should return an IQueryWithResolver that applies the provided getQuery function with an argument', () => {
+      const arg = 42;
+      const transformedQueryRef = {
+        col: colRef,
+        constraints: [{ type: 'where', field: 'y', op: '<', value: arg }],
+      } as any;
+      const resolver = QueryResolver.create(adaptor, () => queryRef);
+      const getQuery = jest.fn().mockReturnValue(transformedQueryRef);
+      const withResolver = resolver.queryWith(getQuery);
+
+      expect(withResolver).toHaveProperty('resolve');
+      const result = withResolver.resolve(docRef, arg);
+      expect(getQuery).toHaveBeenCalledWith(queryRef, arg);
+      expect(result).toBeInstanceOf(Query);
+      expect(result.ref).toBe(transformedQueryRef);
+    });
+  });
+
+  describe('constraintsWith', () => {
+    it('should return an IQueryWithResolver that applies constraints based on the argument', () => {
+      const arg = 'dynamic';
+      const dynamicConstraint: TestConstraint = { constraintId: arg };
+      const resolver = QueryResolver.create(adaptor, () => queryRef);
+      const getConstraints = jest.fn().mockReturnValue([dynamicConstraint]);
+      const withResolver = resolver.constraintsWith(getConstraints);
+
+      expect(withResolver).toHaveProperty('resolve');
+      const spy = jest.spyOn(adaptor, 'query');
+      const result = withResolver.resolve(docRef, arg);
+      expect(getConstraints).toHaveBeenCalledWith(arg);
+      expect(spy).toHaveBeenCalledWith(queryRef, [dynamicConstraint]);
+      expect(result).toBeInstanceOf(Query);
+    });
+
+    it('should handle multiple constraints returned from getConstraints', () => {
+      const arg = 'multi';
+      const c1: TestConstraint = { constraintId: 'c1' };
+      const c2: TestConstraint = { constraintId: 'c2' };
+      const resolver = QueryResolver.create(adaptor, () => queryRef);
+      const getConstraints = jest.fn().mockReturnValue([c1, c2]);
+      const withResolver = resolver.constraintsWith(getConstraints);
+
+      const spy = jest.spyOn(adaptor, 'query');
+      withResolver.resolve(docRef, arg);
+      expect(getConstraints).toHaveBeenCalledWith(arg);
+      expect(spy).toHaveBeenCalledWith(queryRef, [c1, c2]);
+    });
+  });
 });
