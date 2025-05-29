@@ -1,91 +1,187 @@
-[![GitHub Repo](https://img.shields.io/badge/Github%20-%20Repo%20-%20%232e3440?logo=github&labelColor=%232e3440&color=%234c566a)](https://github.com/ouijan/resource-ql)
-[![Build Status](https://github.com/ouijan/resource-ql/actions/workflows/build.yml/badge.svg)](https://github.com/ouijan/resource-ql/actions/workflows/build.yml)
-[![Tests](https://github.com/ouijan/resource-ql/actions/workflows/tests.yml/badge.svg)](https://github.com/ouijan/resource-ql/actions/workflows/tests.yml)
-[![Coverage](https://ouijan.github.io/resource-ql/coverage/badges.svg)](https://ouijan.github.io/resource-ql/coverage/lcov-report)
-[![Documentation](https://ouijan.github.io/resource-ql/docs/coverage.svg)](https://ouijan.github.io/resource-ql/docs)
+<h1 align="center">ResourceQL</h1>
 
 <p align="center">
-  <img src="./media/logo.svg" alt="Resource-QL Logo" width="200"/>
+  <img src="./media/logo.svg"  alt="Resource-QL Logo" width="120px" height="120px"/>
+  <br>
+  <em>A type-safe, composable abstraction layer <br /> 
+  for document and collection APIs in TypeScript</em>
+  <br>
 </p>
 
-# ResourceQL
+<p align="center">
+  <a href="https://ouijan.github.io/resource-ql/docs">Documentation</a>
+  ·
+  <a href="https://github.com/ouijan/resource-ql">Github Repo</a>
+  <br>
+  <br>
+</p>
 
-A type-safe, composable abstraction layer for document and collection APIs in TypeScript. Designed to provide a predictable, testable, and maintainable interface for data access—especially in large-scale applications—while supporting flexible adapters for different backends.
+<p align="center">
+  <a href="https://github.com/ouijan/resource-ql/actions/workflows/build.yml">
+    <img src="https://github.com/ouijan/resource-ql/actions/workflows/build.yml/badge.svg" alt="Build Status" />
+  </a>
+  <a href="https://github.com/ouijan/resource-ql/actions/workflows/tests.yml">
+    <img src="https://github.com/ouijan/resource-ql/actions/workflows/tests.yml/badge.svg" alt="Tests Status" />
+  </a>
+  <a href="https://ouijan.github.io/resource-ql/coverage/lcov-report">
+    <img src="https://ouijan.github.io/resource-ql/coverage/badges.svg" alt="Test Coverage" />
+  </a>
+  <a href="https://ouijan.github.io/resource-ql/docs">
+    <img src="https://ouijan.github.io/resource-ql/docs/coverage.svg" alt="Documentation" />
+  </a>
+</p>
 
-## 🚀 Features
+<hr>
+<br />
 
-- 🔨 Build re-usable and composable firestore accessors
-- 🧱 Fluent query and collection builders
-- 🔗 Relationship resolvers for nested documents and sub-collections
-- ✅ Strong typing for documents, collections, and queries
-- 🔁 Observable support for real-time updates
+## Installation
 
-## 💻 Example
+Using npm:
 
-```ts
-class Patient {
-    // Create a "resource" resolver
-    static resource = Resource.from<IPatient>();
+```shell
+$ npm i --save ouijan/resource-ql
+```
 
-    // Build queries by "extending" that resource
-    static invoices = patient.subCol<IInvoice>("invoices");
+In Typescript:
+
+```typescript
+import { NewResource, AdaptorTypes, IAdaptor, IDocResolver } from 'resource-ql';
+
+// Set up an Adaptor
+type MyAdaptorTypes = AdaptorTypes<
+  MyDocRef,
+  MyQueryRef,
+  MyColRef,
+  MyConstraint,
+  MyTransaction
+>;
+
+class MyAdaptor implements IAdaptor<MyAdaptorTypes> {
+  // Implement IAdaptor...
 }
 
-// Access data
-const patientRef: DocumentReference<IPatient> = ...
-const patient = await Patient.resource.get(patientRef);
-const invoices$ = Patient.invoices.get$(patientRef);
+// Wrap your Adaptor
+function getResource<T>(): IDocResolver<MyAdaptorTypes, T, T> {
+  return NewResource<MyAdaptorTypes, T>(new MyAdaptor());
+}
+
+// Build Resources
+const resource = getResource<IDocumentInterface>();
 ```
 
-## Summary of Use Cases
+## Why ResourceQL?
 
-| Key concepts |                                                           |
-| ------------ | --------------------------------------------------------- |
-| Resolvers    | Callable Classes that resolve a resource given a ref      |
-| Extenders    | Functions called to build queries by extending a resource |
-| Accessors    | Functions called to access data from a resource.          |
+ResourceQL enables you to compose and organize queries in one place, promoting
+code reuse and maintainability. By separating query logic from business logic,
+your data access code stays modular and easier to manage.
 
-&nbsp;
+**Example:**
 
-| Interface              | Purpose                                     |
-| ---------------------- | ------------------------------------------- |
-| `IDoc<T>`              | Wraps a document with common accessors      |
-| `IDocResolver<S, T>`   | Build scoped queries from a source document |
-| `IQuery<T>`            | Wraps a query with common accessors         |
-| `IQueryResolver<S, T>` | Build scoped queries from a source document |
-| `ICol<T>`              | Wraps a collection with common accessors    |
-| `IColResolver<S, T>`   | Build scoped queries from a source document |
+Suppose you want to fetch users with different filters. You can define base
+queries and extend them as needed:
 
-## Advanced Queries
-
-Extending a resource will return a new resource leaving the original unaffected
-
-```ts
-const res = Resource.from<IPatient>();
-const resInvoices = res.subCol('invoices');
-// res != resInvoices
+```typescript
+class WorkspaceQuery {
+  static resource = getResource<IWorkspace>();
+  static users = this.resource.col<IUser>('users');
+  static activeUsers = this.users.constraints(where('active', '==', true));
+  static activeUsersByRole = this.activeUsers.constraintsWith((role: string) =>
+    where('role', '==', role)
+  );
+}
 ```
 
-Extending a collection will hold a reference to last collection ref, rather than returning a query. This us useful for maintaining some collection accessors.
+Now, you can reuse and compose these queries anywhere in your application:
 
-```ts
-const invoices = Resource.from<IPatient>()
-  .subCol('invoices') // collection extender called here
-  .constraints(where('status', '==', 'draft'));
-const invoiceColRef = invoices.ref; // available
-
-const invoices = Resource.from<IPatient>().query((patientRef) =>
-  // query constructed directly with firestore
-  patientRef.collection('invoice').where('status', '==', 'draft')
-);
-// invoices.ref is NOT available because a query was created directly
+```typescript
+const admins = await WorkspaceQuery.activeUsersByRole(workspaceRef 'admin').get();
+const activeUsers = await WorkspaceQuery.activeUsers.get(workspaceRef);
 ```
 
-In some cases it may be useful add constraints to query/collection on the spot. Most accessors will allow this.
+This approach keeps queries DRY, maintainable, and reusable, while making
+domain logic easier to test.
 
-```ts
-const res = Resource.from<IPatient>();
-const resInvoices = res.subCol('invoices');
-// later when used...
-resInvoices.get(patientRef, where('draft', '==', true));
+## Easier Testing
+
+ResourceQL lets you easily stub or mock queries in tests. Since queries are
+encapsulated, you can swap in test doubles without changing your domain logic.
+
+Example:
+
+Suppose you want to test `listActiveUserNames` without making real API calls:
+
+```typescript
+import { WorkspaceQuery } from '../queries/workspace';
+import { listActiveUserNames } from '../services/userService';
+
+jest.spyOn(WorkspaceQuery, 'activeUsers').mockResolvedValue({
+  id: '123',
+  name: 'Test User',
+});
+
+test('listActiveUserNames returns user data', async () => {
+  const names = await listActiveUserNames(workspaceRef);
+  expect(names).toEqual(['Test User']);
+});
 ```
+
+This keeps tests fast and reliable, ensuring domain logic is tested independently of data sources.
+
+## Accessors
+
+Accessors let you fetch data as either a `Promise` or an `Observable`, using the
+same interface for both. This enables consistent, flexible, and reusable queries
+throughout your app.
+
+```typescript
+const activeUsers = await WorkspaceQuery.activeUsers.get(workspaceRef);
+const activeUsers$ = await WorkspaceQuery.activeUsers.get$(workspaceRef);
+```
+
+## Resolvers
+
+Resolvers offer a structured way to access related documents or collections.
+Starting with `NewResource`, you can easily fetch related data from a given
+reference. This is ideal for projects with complex relationships, such as document
+databases where documents reference each other.
+
+**Example:**
+
+Suppose you have a `User` document that references a `Workspace` document. You can
+use resolvers to fetch related data easily:
+
+```typescript
+// Define your resource resolver
+const userResolver = getResource<IUser>();
+
+// Create a new resolver from the userResolver
+const userWorkspaceResolver = userResolver.parent<IWorkspace>();
+
+// Fetch the workspace data
+const workspaceData = await userWorkspaceResolver(userRef).get();
+```
+
+This pattern makes it simple to traverse relationships and fetch nested or
+related documents in a type-safe way.
+
+## Adaptors
+
+Backend adaptors provide a consistent interface for your app to interact with
+any backend—REST APIs, databases, or custom services. This abstraction:
+
+- Enables support for multiple or proprietary backends without changing core logic.
+- Hides backend-specific details from your application code.
+- Makes it easy to swap or update backends by modifying only the adaptor.
+- Reduces code duplication and improves maintainability.
+
+### Creating an Adaptor
+
+ResourceQL does not include a built-in adaptor, allowing you to create
+integrations tailored to your backend or platform. To set up an adaptor,
+implement the `IAdaptor` interface using your preferred backend library.
+See example adaptors here:
+
+- [Proprietary Firestore wrapper](https://github.com/ouijan/resource-ql/blob/main/src/examples/firestore-adaptor.ts)
+- LokiJS (Work In Progress)
+- Firestore with `firebase` (Work In Progress)
+- Firestore with `firebase-admin` (Work In Progress)
