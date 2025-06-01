@@ -106,7 +106,7 @@ const posts = await Workspace.posts(workspaceRef).get();
 
 We have seen how to resolve queries starting from a Workspace, in these examples we show more ways to build queries starting from a User.
 
-We will start by defining a `Usee` class to encapsulate our queries, and adding a `posts` collection.
+We will start by defining a `User` class to encapsulate our queries, and then adding a `posts` collection.
 
 ```typescript
 export class User {
