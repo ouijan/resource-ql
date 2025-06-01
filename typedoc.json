@@ -1,22 +1,27 @@
 {
   "$schema": "https://typedoc.org/schema.json",
+  "favicon": "./media/favicon.ico",
+  "projectDocuments": ["examples/**/*.md"],
+  // "entryPointStrategy": "expand",
+  "entryPoints": ["./src"],
+  "tsconfig": "./tsconfig.json",
+  "readme": "./README.md",
   "plugin": [
     "typedoc-github-theme",
-    "typedoc-plugin-missing-exports",
+    // "typedoc-plugin-missing-exports",
     "typedoc-plugin-coverage",
-    "typedoc-plugin-extras"
+    "typedoc-plugin-extras",
+    "typedoc-plugin-merge-modules"
   ],
-  "favicon": "./media/favicon.ico",
+
+  // "alwaysCreateEntryPointModule": true,
   "hideGenerator": true,
-  "excludeExternals": true,
-  "exclude": ["./types/**/*"],
-  "placeInternalsInOwningModule": true,
+  // "excludeExternals": true,
+  // "exclude": ["./types/**/*"],
   "navigation": {
     "includeGroups": true,
     "compactFolders": false
   },
-  "footerLastModified": true,
-  "readme": "./README.md",
   "customTitle": "ResourceQL",
   "customDescription": "ResourceQL is a powerful and flexible query language designed for querying and manipulating resources in a structured manner. It provides a simple syntax for expressing complex queries, making it easy to retrieve and manipulate data from various sources."
 }

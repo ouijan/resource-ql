@@ -1,6 +1,4 @@
 import { Observable } from 'rxjs';
-import { IAdaptor } from '../adaptor/adaptor';
-import { AdaptorTypes } from '../adaptor/adaptor-types';
 import {
   all$,
   CollectionReference,
@@ -11,7 +9,8 @@ import {
   queryFirestore,
   subCollection,
   Transaction,
-} from './firestore-interfaces';
+} from './firestore-stub';
+import { AdaptorTypes, IAdaptor, IDocResolver, NewResource } from '../../src';
 
 export type FirestoreAdaptorTypes = AdaptorTypes<
   DocumentReference<any>,
@@ -67,4 +66,8 @@ export class FirestoreAdaptor implements IAdaptor<FirestoreAdaptorTypes> {
   castToQuery<T>(colRef: CollectionReference<T>): Query<T> {
     return colRef;
   }
+}
+
+export function getResource<T>(): IDocResolver<FirestoreAdaptorTypes, T, T> {
+  return NewResource<FirestoreAdaptorTypes, T>(new FirestoreAdaptor());
 }

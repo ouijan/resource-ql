@@ -1,10 +1,35 @@
 import { type Observable } from 'rxjs';
 
 export type CollectionReference<T> = Query<T> & { collectionReference: T };
-export type DocumentReference<T> = { documentReference: T };
+export type DocumentReference<_T> = { path: string; id: string };
 export type Query<T> = { query: T };
 export type QueryConstraint = { queryConstraint: 'queryConstraint' };
 export type Transaction = { transaction: 'transaction' };
+
+export function where(
+  _key: string,
+  _compare: string,
+  _value: any
+): QueryConstraint {
+  throw new Error('Method not implemented.');
+}
+export function limit(_count: number): QueryConstraint {
+  throw new Error('Method not implemented.');
+}
+
+export function undeletedQuery<T extends { deleted: boolean }>(
+  _col: CollectionReference<T> | Query<T>,
+  ..._queryConstraints: QueryConstraint[]
+): Query<T> {
+  throw new Error('Method not implemented.');
+}
+
+export function collectionGroupQuery<T>(
+  _collectionId: string,
+  ..._queryConstraints: QueryConstraint[]
+): Query<T> {
+  throw new Error('Method not implemented.');
+}
 
 export function queryFirestore<T>(
   _collectionRef: CollectionReference<T> | Query<T>,

@@ -19,7 +19,7 @@
     "paths": {},
     "pretty": true,
     "resolveJsonModule": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "sourceMap": true,
