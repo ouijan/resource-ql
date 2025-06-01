@@ -94,8 +94,11 @@ class WorkspaceQuery {
 Now, you can reuse and compose these queries anywhere in your application:
 
 ```typescript
-const admins = await WorkspaceQuery.activeUsersByRole(workspaceRef 'admin').get();
-const activeUsers = await WorkspaceQuery.activeUsers.get(workspaceRef);
+const admins = await WorkspaceQuery.activeUsersByRole(
+  workspaceRef,
+  'admin'
+).get();
+const activeUsers = await WorkspaceQuery.activeUsers(workspaceRef).get();
 ```
 
 This approach keeps queries DRY, maintainable, and reusable, while making
@@ -134,8 +137,8 @@ same interface for both. This enables consistent, flexible, and reusable queries
 throughout your app.
 
 ```typescript
-const activeUsers = await WorkspaceQuery.activeUsers.get(workspaceRef);
-const activeUsers$ = await WorkspaceQuery.activeUsers.get$(workspaceRef);
+const activeUsers = await WorkspaceQuery.activeUsers(workspaceRef).get();
+const activeUsers$ = await WorkspaceQuery.activeUsers(workspaceRef).get$();
 ```
 
 ## Resolvers
