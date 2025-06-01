@@ -184,7 +184,7 @@ integrations tailored to your backend or platform. To set up an adaptor,
 implement the `IAdaptor` interface using your preferred backend library.
 See example adaptors here:
 
-- [Custom Firestore wrapper](https://github.com/ouijan/resource-ql/blob/main/src/examples/custom-firestore/adaptor.ts)
+- [Custom Firestore wrapper](https://github.com/ouijan/resource-ql/blob/main/examples/custom-firestore/adaptor.ts)
 - LokiJS (Work In Progress)
 - Firestore with `firebase` (Work In Progress)
 - Firestore with `firebase-admin` (Work In Progress)
